@@ -1,0 +1,214 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default:"Add Expense" }} | SpendSmart</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        .form-page {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            color: #f5f3ff;
+        }
+
+        .form-card {
+            background: #15131f;
+            border: 1px solid #292535;
+            border-radius: 18px;
+            padding: 30px;
+            margin-top: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
+            color: #c4b4ff;
+            font-weight: 600;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px 14px;
+            border-radius: 9px;
+            border: 1px solid #393247;
+            background: #0c0b12;
+            color: #f5f3ff;
+            font: inherit;
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            outline: 2px solid #9275ff;
+            border-color: #9275ff;
+        }
+
+        .field textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .field .helptext {
+            color: #9691a8;
+            font-size: 13px;
+        }
+
+        .error-list,
+        .field ul.errorlist {
+            color: #ff8585;
+            padding-left: 20px;
+            font-size: 14px;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .form-button {
+            border: 0;
+            border-radius: 9px;
+            padding: 13px 20px;
+            background: #9275ff;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .cancel-button {
+            background: #30293a;
+        }
+
+        .form-message {
+            padding: 12px 15px;
+            border-radius: 9px;
+            margin-top: 12px;
+            background: #173b2b;
+            color: #86efac;
+        }
+
+        .back-link {
+            color: #c4b4ff;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .form-page {
+                padding: 20px 14px;
+            }
+
+            .form-card {
+                padding: 20px 15px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .field.full-width {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="form-page">
+
+        <a class="back-link" href="{% url 'dashboard' %}">
+            ← Back to Dashboard
+        </a>
+
+        <header style="margin-top: 24px;">
+            <p style="color: #9691a8;">PERSONAL FINANCE / EXPENSES</p>
+            <h1>{{ page_title|default:"Add Expense" }}</h1>
+            <p style="color: #9691a8;">
+                Record your spending and keep your finances organized.
+            </p>
+        </header>
+
+        {% for message in messages %}
+            <div class="form-message">{{ message }}</div>
+        {% endfor %}
+
+        <section class="form-card">
+            <h2 style="margin-top: 0;">Expense Details</h2>
+
+            {% if form.non_field_errors %}
+                <div class="error-list">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="form-grid">
+
+                    {% for field in form %}
+                        <div class="field {% if field.name == 'description' %}full-width{% endif %}">
+
+                            <label for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.help_text %}
+                                <div class="helptext">{{ field.help_text }}</div>
+                            {% endif %}
+
+                            {% if field.errors %}
+                                <div class="error-list">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+                <div class="form-actions">
+                    <button class="form-button" type="submit">
+                        {{ button_text|default:"Save Expense" }}
+                    </button>
+
+                    <a class="form-button cancel-button"
+                       href="{% url 'transactions' %}">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+        </section>
+
+    </main>
+</body>
+</html>

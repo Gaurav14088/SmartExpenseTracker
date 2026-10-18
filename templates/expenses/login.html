@@ -1,0 +1,42 @@
+```html
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | SpendSmart</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1>Spend<span>Smart.</span></h1>
+            <h2>Welcome Back!</h2>
+            <p>Login to manage your expenses.</p>
+
+            {% if error %}
+                <p class="error-message">{{ error }}</p>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <label>Username</label>
+                <input type="text" name="username" required>
+
+                <label>Password</label>
+                <input type="password" name="password" required>
+
+                <button type="submit">Login</button>
+            </form>
+
+            <p class="auth-link">
+                Don't have an account?
+                <a href="{% url 'user_register' %}">Register</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+```

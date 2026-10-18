@@ -1,0 +1,114 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions | SpendSmart</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .transactions-page { padding: 28px; color: #f5f3ff; }
+        .transactions-heading { display:flex; justify-content:space-between; align-items:center; gap:15px; flex-wrap:wrap; }
+        .transactions-panel { background:#15131f; border:1px solid #292535; border-radius:16px; padding:22px; margin-top:24px; }
+        .filter-form { display:flex; gap:12px; flex-wrap:wrap; margin:20px 0; }
+        .filter-form input, .filter-form select { background:#0c0b12; color:#f5f3ff; border:1px solid #393247; border-radius:8px; padding:12px; }
+        .action-button { display:inline-block; border:0; border-radius:8px; padding:10px 14px; text-decoration:none; cursor:pointer; background:#9275ff; color:white; font-weight:600; }
+        .secondary-button { background:#30293a; color:#f5f3ff; }
+        .delete-button { background:#7f2936; color:#fff; }
+        .table-wrapper { overflow-x:auto; }
+        .transactions-table { width:100%; border-collapse:collapse; min-width:700px; }
+        .transactions-table th, .transactions-table td { padding:15px 12px; text-align:left; border-bottom:1px solid #292535; }
+        .transactions-table th { color:#9691a8; font-weight:500; }
+        .category-pill { background:#30293a; padding:5px 10px; border-radius:20px; }
+        .message { background:#173b2b; padding:12px; border-radius:8px; margin-top:12px; }
+        .empty-state { text-align:center; padding:35px 10px; color:#9691a8; }
+        .summary { color:#c4b4ff; margin-top:8px; }
+        @media(max-width:600px) { .transactions-page { padding:16px; } .transactions-panel { padding:14px; } }
+    </style>
+</head>
+<body>
+    <main class="transactions-page">
+        <div class="transactions-heading">
+            <div>
+                <p style="color:#9691a8;">PERSONAL FINANCE / TRANSACTIONS</p>
+                <h1>Transactions</h1>
+                <p style="color:#9691a8;">Manage all your recorded expenses.</p>
+            </div>
+            <a class="action-button" href="{% url 'expense_add' %}">+ Add Expense</a>
+        </div>
+
+        {% for message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+
+        <section class="transactions-panel">
+            <h2>All Expenses</h2>
+            <p class="summary">
+                {{ expense_count }} transaction(s) · Filtered total: ₹{{ filtered_total|floatformat:2 }}
+            </p>
+
+            <form method="get" class="filter-form">
+                <input type="search" name="q" value="{{ search_query }}"
+                       placeholder="Search expense title...">
+
+                <select name="category">
+                    <option value="">All Categories</option>
+                    {% for value, label in categories %}
+                        <option value="{{ value }}"
+                            {% if selected_category == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <button class="action-button" type="submit">Search / Filter</button>
+                <a class="action-button secondary-button" href="{% url 'transactions' %}">Clear</a>
+            </form>
+
+            <div class="table-wrapper">
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Expense</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                            <tr>
+                                <td><strong>{{ expense.title }}</strong></td>
+                                <td><span class="category-pill">{{ expense.get_category_display }}</span></td>
+                                <td>{{ expense.date|date:"d M Y" }}</td>
+                                <td>₹{{ expense.amount|floatformat:2 }}</td>
+                                <td>{{ expense.description|default:"—"|truncatechars:45 }}</td>
+                                <td>
+                                    <a class="action-button secondary-button"
+                                       href="{% url 'expense_edit' expense.pk %}">Edit</a>
+
+                                    <a class="action-button delete-button"
+                                       href="{% url 'expense_delete' expense.pk %}">Delete</a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    No expenses found. Try another search or add an expense.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <p style="margin-top:20px;">
+                <a class="action-button secondary-button" href="{% url 'dashboard' %}">← Back to Dashboard</a>
+            </p>
+        </section>
+    </main>
+</body>
+</html>

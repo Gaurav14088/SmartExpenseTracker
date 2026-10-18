@@ -1,0 +1,223 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Reports | Smart Expense Tracker</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .report-container {
+            max-width: 1100px;
+            margin: 35px auto;
+            padding: 24px;
+            color: var(--text, #f5f3ff);
+        }
+        .report-header, .report-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .report-panel {
+            background: var(--panel, #15131f);
+            border: 1px solid var(--border, #292535);
+            border-radius: 16px;
+            padding: 22px;
+            margin: 20px 0;
+        }
+        .report-form {
+            display: flex;
+            gap: 12px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        .report-form label {
+            display: block;
+            margin-bottom: 7px;
+            color: var(--muted, #9691a8);
+        }
+        .report-form select {
+            min-width: 150px;
+            padding: 11px;
+            border-radius: 8px;
+        }
+        .report-button {
+            display: inline-block;
+            padding: 11px 16px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--purple, #9275ff);
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .report-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+        }
+        .report-stat {
+            background: var(--panel, #15131f);
+            border: 1px solid var(--border, #292535);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .report-stat p {
+            color: var(--muted, #9691a8);
+            margin: 0 0 10px;
+        }
+        .report-stat h2 {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+        .report-table-wrap {
+            overflow-x: auto;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .report-table th, .report-table td {
+            padding: 13px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border, #292535);
+        }
+        .report-table th {
+            color: var(--muted, #9691a8);
+        }
+        .report-empty {
+            color: var(--muted, #9691a8);
+            padding: 20px 0;
+        }
+        @media (max-width: 600px) {
+            .report-container { padding: 14px; }
+            .report-panel { padding: 15px; }
+            .report-form > div { width: 100%; }
+            .report-form select { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <main class="report-container">
+        <div class="report-header">
+            <div>
+                <h1>Monthly Reports</h1>
+                <p>Review your monthly spending.</p>
+            </div>
+            <div class="report-actions">
+                <a class="report-button" href="{% url 'dashboard' %}">Dashboard</a>
+                <a class="report-button" href="{% url 'transactions' %}">Transactions</a>
+            </div>
+        </div>
+
+        <section class="report-panel">
+            <h2>Select Month</h2>
+            <form method="get" class="report-form">
+                <div>
+                    <label for="month">Month</label>
+                    <select name="month" id="month">
+                        {% for number, name in months %}
+                            <option value="{{ number }}"
+                                {% if number == selected_month %}selected{% endif %}>
+                                {{ name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="year">Year</label>
+                    <select name="year" id="year">
+                        {% for year in available_years %}
+                            <option value="{{ year }}"
+                                {% if year == selected_year %}selected{% endif %}>
+                                {{ year }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button class="report-button" type="submit">View Report</button>
+
+                <a class="report-button"
+                   href="{% url 'download_report' %}?month={{ selected_month }}&year={{ selected_year }}">
+                    Download CSV
+                </a>
+            </form>
+        </section>
+
+        <div class="report-stats">
+            <section class="report-stat">
+                <p>Total Spending — {{ month_name }} {{ selected_year }}</p>
+                <h2>₹{{ total_amount|floatformat:2 }}</h2>
+            </section>
+            <section class="report-stat">
+                <p>Number of Transactions</p>
+                <h2>{{ expense_count }}</h2>
+            </section>
+        </div>
+
+        <section class="report-panel">
+            <h2>Category-wise Spending</h2>
+
+            {% if category_data %}
+                <div class="report-table-wrap">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Total Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in category_data %}
+                                <tr>
+                                    <td>{{ item.category }}</td>
+                                    <td>₹{{ item.total|floatformat:2 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="report-empty">No expenses found for this month.</p>
+            {% endif %}
+        </section>
+
+        <section class="report-panel">
+            <h2>Transactions for {{ month_name }} {{ selected_year }}</h2>
+
+            {% if report_expenses %}
+                <div class="report-table-wrap">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for expense in report_expenses %}
+                                <tr>
+                                    <td>{{ expense.date|date:"d M Y" }}</td>
+                                    <td>{{ expense.title }}</td>
+                                    <td>{{ expense.category }}</td>
+                                    <td>₹{{ expense.amount|floatformat:2 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="report-empty">No transactions for the selected month.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>
