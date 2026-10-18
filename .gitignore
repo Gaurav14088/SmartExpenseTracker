@@ -8,3 +8,5 @@ db_backup.sqlite3
 staticfiles/
 .vscode/
 .git/
+data_backup.json
+db_backup.sqlite3
